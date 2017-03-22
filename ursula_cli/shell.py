@@ -108,11 +108,11 @@ def _set_default_env():
 def test_ssh(host, user, key_file):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(AutoAddPolicy())
-    try: 
+    try:
         ssh.connect(hostname=host, username=user, key_filename=key_file)
         LOG.debug("Connect to {0} successfully".format(host))
         return True
-    except (BadHostKeyException, AuthenticationException, 
+    except (BadHostKeyException, AuthenticationException,
         SSHException, socket.error) as e:
             LOG.debug(e)
             LOG.debug("Connect to {0} failed. Retrying... ".format(host))
@@ -371,7 +371,7 @@ Host {server}
   Hostname {ip}
 """
         if floating_ip:
-            ssh_config_pre += ("  ProxyCommand ssh -W %h:%p -o StrictHostKeyChecking=no"
+            ssh_config_pre += ("  ProxyCommand ssh -W %h:%p -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
                                " {user}@{floating_ip}\n\n")
         ssh_config = ssh_config_pre.format(
             server=server, ip=ip, user=args.ursula_user, floating_ip=floating_ip)
@@ -383,9 +383,9 @@ Host {server}
         _append_envvar("ANSIBLE_SSH_ARGS", "-F %s" % ansible_ssh_config_file)
 
     LOG.debug("waiting for SSH connectivity...")
- 
+
     user = args.ursula_user
-    
+
     start_time = time.time()
     timeout = 120
     if floating_ip:
@@ -394,7 +394,7 @@ Host {server}
                     sys.exit(-1)
             LOG.debug("waiting for SSH connectivity...")
             time.sleep(5)
-    else:        
+    else:
         for ip in servers.itervalues():
             while not test_ssh(str(ip), user, ssh_key_path):
                 if time.time() > start_time + timeout:
