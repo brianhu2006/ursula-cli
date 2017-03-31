@@ -365,7 +365,6 @@ Host floating_ip
             text_file.write(ssh_config)
 
     for server, ip in servers.iteritems():
-        test_ip = ip
         ssh_config_pre = """
 Host {server}
   Hostname {ip}
@@ -477,6 +476,13 @@ def run(args, extra_args):
     ansible_ssh_config_file = os.path.abspath(rel_ansible_ssh_config_file)
     if os.path.isfile(ansible_ssh_config_file):
         _append_envvar("ANSIBLE_SSH_ARGS", "-F %s" % ansible_ssh_config_file)
+
+    static_known_hosts_file = os.path.abspath(
+        os.path.join(args.environment, 'known_hosts')
+    )
+    if os.path.isfile(static_known_hosts_file):
+        _append_envvar("ANSIBLE_SSH_ARGS",
+                       "-o UserKnownHostsFile=%s" % static_known_hosts_file)
 
     if args.ursula_forward:
         _append_envvar("ANSIBLE_SSH_ARGS", "-o ForwardAgent=yes")
