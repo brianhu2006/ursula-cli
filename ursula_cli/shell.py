@@ -312,8 +312,8 @@ def _run_heat(args, hot):
 
     stack = heatclient.stacks.get(stack_name)
     if stack.status != 'COMPLETE':
-        raise Exception("stack %s returned an unexpected status (%s)" %
-                        (stack_name, stack.status))
+        raise Exception("stack %s returned an unexpected status (%s:%s)" %
+                        (stack_name, stack.status, stack.stack_status_reason))
 
     LOG.debug("Stack %sd!" % stack_action)
 
