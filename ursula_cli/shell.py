@@ -231,15 +231,18 @@ def _ssh_add(keyfile):
         )
 
 
-def _run_heat(args, hot):
+def _run_heat(args, heat_file):
     try:
         from heatclient.common import utils
         from heatclient.client import Client as Heat_Client
+        from heatclient.common import template_utils
         from keystoneclient.v3 import Client as Keystone_Client
+
     except ImportError as e:
         LOG.error("You must have python-heatclient in your python path")
         raise Exception(e)
-
+    tpl_files, template = template_utils.get_template_contents(
+        heat_file)
     CREDS = {
         'username': os.environ.get('OS_USERNAME'),
         'password': os.environ.get('OS_PASSWORD'),
@@ -270,7 +273,8 @@ def _run_heat(args, hot):
 
     STACK = {
         'stack_name': stack_name,
-        'template': hot
+        'template': template,
+        'files': dict(list(tpl_files.items()))
     }
 
     if args.heat_parameters:
@@ -507,12 +511,10 @@ def run(args, extra_args):
         if not os.path.exists(heat_file):
             raise Exception(
                 "heat provider requires a heat file at %s" % heat_file)
-        with open(heat_file, "r") as myfile:
-            hot = myfile.read()
         heat_extra_args = "%s/vars_heat.yml" % args.environment
         if os.path.exists(heat_extra_args) and os.path.isfile(heat_extra_args):
             extra_args += ['--extra-vars', '@%s' % heat_extra_args]
-        rc = _run_heat(args=args, hot=hot)
+        rc = _run_heat(args=args, heat_file=heat_file)
         if rc:
             return rc
         if not args.ursula_user:
